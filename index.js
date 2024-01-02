@@ -30,20 +30,25 @@ app.post('/api/shorturl', function(req, res) {
   console.log(req.body);
   const dnslookup = dns.lookup(urlparser.parse(req.body.url).hostname,async(err,address)=>{
     if(!address){
-      res.json({error: "invalid url"});
+      res.json({error:"invalid url"});
     }else{
       const urlCnt = await urls.countDocuments({});
       const urlDoc = {
         url : req.body.url,
-        shorturl : urlCnt
+        shorturl : urlCnt + 1
       }
       const result = await urls.insertOne(urlDoc);
-      res.json({original_url : req.body.url, shor_url:urlCnt});
+      res.json({original_url : req.body.url, short_url:urlCnt});
       console.log(result);
     }
   })
 });
 
+app.get("/api/shorturl/:short_url", async (req, res) => {
+  const shorturl = req.params.short_url;
+  const urlDoc = await urls.findOne({shorturl : +shorturl});
+  res.redirect(urlDoc.url);;
+})
 app.listen(port, function() {
   console.log(`Listening on port ${port}`);
 });
